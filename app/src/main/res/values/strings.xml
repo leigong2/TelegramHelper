@@ -5,4 +5,12 @@
     <string name="action_sign_in">登录</string>
     <string name="action_sign_in_short">登录</string>
     <string name="login_failed">"登录失败"</string>
+    <string name="error_password">"密码错误，请重试"</string>
+    <string name="enter_im">"进入聊天室"</string>
+    <string name="exit_im">"退出登录"</string>
+    <string name="exit_error">"退出登录失败"</string>
+    <string name="chat_title">"聊天列表"</string>
+    <string name="chat_new_list">"最近联系人"</string>
+    <string name="chat_friend">"好友"</string>
+    <string name="chat_group">"群聊"</string>
 </resources>
