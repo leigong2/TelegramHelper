@@ -1,6 +1,7 @@
 package com.telegram.helper.chat;
 
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -126,8 +127,8 @@ public class ChatRoomFragment extends BaseFragment {
     }
 
     public static class ChatRoomHolder<T> extends BaseAdapter.BaseViewHolder<T> {
-        public ChatRoomHolder(@NonNull View itemView) {
-            super(itemView);
+        public ChatRoomHolder(@NonNull ViewGroup parent) {
+            super(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_chat_room, null));
         }
 
         @Override

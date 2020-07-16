@@ -2,6 +2,8 @@ package com.telegram.helper.login;
 
 import android.content.Context;
 
+import com.blankj.utilcode.util.LogUtils;
+import com.blankj.utilcode.util.ToastUtils;
 import com.telegram.helper.event.ConversationChangeEvent;
 import com.telegram.helper.event.GroupChangeEvent;
 import com.tencent.imsdk.TIMCallBack;
@@ -9,11 +11,10 @@ import com.tencent.imsdk.TIMGroupManager;
 import com.tencent.imsdk.TIMManager;
 import com.tencent.imsdk.TIMValueCallBack;
 import com.tencent.imsdk.ext.group.TIMGroupBaseInfo;
+import com.tencent.imsdk.v2.V2TIMCallback;
 import com.tencent.imsdk.v2.V2TIMConversation;
 import com.tencent.imsdk.v2.V2TIMConversationListener;
 import com.tencent.imsdk.v2.V2TIMConversationResult;
-import com.tencent.imsdk.v2.V2TIMGroupManager;
-import com.tencent.imsdk.v2.V2TIMGroupManagerImpl;
 import com.tencent.imsdk.v2.V2TIMManager;
 import com.tencent.imsdk.v2.V2TIMSDKConfig;
 import com.tencent.imsdk.v2.V2TIMSDKListener;
@@ -225,6 +226,40 @@ public class TIMHelper {
             @Override
             public void onSuccess(List<TIMGroupBaseInfo> timGroupBaseInfos) {
                 addGroup(timGroupBaseInfos);
+            }
+        });
+    }
+
+    public void createGroup() {
+//        args[0] = zune：
+//    │ args[1] = groupId = @TGS#3HGN3DTGP
+        String groupType = "Meeting";
+        String groupID = null;
+        String groupName = "屁眼爱好";
+        V2TIMValueCallback<String> callback = new V2TIMValueCallback<String>() {
+            @Override
+            public void onError(int i, String s) {
+                ToastUtils.showShort("创建群组失败");
+            }
+
+            @Override
+            public void onSuccess(String s) {
+                ToastUtils.showShort("创建群组成功");
+                LogUtils.i("zune：", "groupId = " + s);
+            }
+        };
+        V2TIMManager.getInstance().createGroup(groupType, groupID, groupName, callback);
+    }
+
+    public void joinGroup() {
+        V2TIMManager.getInstance().joinGroup("@TGS#3HGN3DTGP", "加入了屁眼爱好群组", new V2TIMCallback() {
+            @Override
+            public void onError(int i, String s) {
+                LogUtils.i("zune：", "进群失败：code = " + i + ", msg = " + s);
+            }
+            @Override
+            public void onSuccess() {
+                ToastUtils.showShort("进入群组成功");
             }
         });
     }

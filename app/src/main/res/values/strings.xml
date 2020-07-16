@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">英语四级助手</string>
+    <string name="app_name">Telegram助手</string>
     <string name="prompt_account">请输入账号</string>
     <string name="prompt_password">请输入密码</string>
     <string name="action_sign_in">登录</string>

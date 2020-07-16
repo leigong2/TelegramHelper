@@ -14,6 +14,7 @@ import androidx.viewpager.widget.ViewPager;
 import com.telegram.helper.MainActivity;
 import com.telegram.helper.R;
 import com.telegram.helper.base.BaseActivity;
+import com.telegram.helper.login.TIMHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,6 +80,7 @@ public class ChatRoomActivity extends BaseActivity {
             public void onPageScrollStateChanged(int state) {
             }
         });
+        TIMHelper.getInstance().joinGroup();
     }
 
     @OnClick({R.id.chat_new_list, R.id.chat_friend, R.id.chat_group})

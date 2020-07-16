@@ -32,7 +32,7 @@ public abstract class BaseAdapter<T> extends RecyclerView.Adapter<BaseAdapter.Ba
 
     @Override
     public int getItemCount() {
-        return 0;
+        return mDatas.size();
     }
 
     public static abstract class BaseViewHolder<T> extends RecyclerView.ViewHolder {

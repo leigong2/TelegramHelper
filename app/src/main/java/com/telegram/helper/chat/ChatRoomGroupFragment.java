@@ -1,8 +1,11 @@
 package com.telegram.helper.chat;
 
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -13,6 +16,7 @@ import com.scwang.smartrefresh.layout.SmartRefreshLayout;
 import com.telegram.helper.R;
 import com.telegram.helper.base.BaseAdapter;
 import com.telegram.helper.base.BaseFragment;
+import com.telegram.helper.chat.group.GroupMemberListActivity;
 import com.telegram.helper.event.GroupChangeEvent;
 import com.telegram.helper.login.TIMHelper;
 import com.tencent.imsdk.ext.group.TIMGroupBaseInfo;
@@ -24,6 +28,8 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.util.List;
 
 import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 public class ChatRoomGroupFragment extends BaseFragment {
 
@@ -41,6 +47,11 @@ public class ChatRoomGroupFragment extends BaseFragment {
                 return new ChatRoomHolder(parent);
             }
         });
+        BaseAdapter<TIMGroupBaseInfo> adapter = (BaseAdapter) recyclerView.getAdapter();
+        if (adapter != null) {
+            adapter.getDatas().addAll(TIMHelper.getInstance().mGroupLists);
+            adapter.notifyDataSetChanged();
+        }
         TIMHelper.getInstance().getGroupList();
     }
 
@@ -75,13 +86,30 @@ public class ChatRoomGroupFragment extends BaseFragment {
     }
 
     public static class ChatRoomHolder extends BaseAdapter.BaseViewHolder<TIMGroupBaseInfo> {
-        public ChatRoomHolder(@NonNull View itemView) {
-            super(itemView);
+        @BindView(R.id.username)
+        TextView username;
+        private TIMGroupBaseInfo mCurData;
+
+        public ChatRoomHolder(@NonNull ViewGroup parent) {
+            super(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_chat_room, null));
+            ButterKnife.bind(this, itemView);
+        }
+
+        public int getLayoutId() {
+            return R.layout.item_chat_room;
         }
 
         @Override
         public void onValue(TIMGroupBaseInfo info, int position) {
+            mCurData = info;
+            username.setText("群：" + info.getGroupName());
+        }
 
+        @OnClick(R.id.username)
+        public void onViewClicked() {
+            if (mCurData != null) {
+                GroupMemberListActivity.start(itemView.getContext(), mCurData);
+            }
         }
     }
 }

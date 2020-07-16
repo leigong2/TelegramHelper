@@ -28,7 +28,6 @@ public class MainActivity extends BaseActivity {
         switch (view.getId()) {
             case R.id.enter:
                 ChatRoomActivity.start(this);
-                finish();
                 break;
             case R.id.exit:
                 if (!DisableDoubleClickUtils.canClick(view)) {
