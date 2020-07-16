@@ -42,8 +42,9 @@ public class ChatRoomFragment extends BaseFragment {
     protected void initView(View view) {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), RecyclerView.VERTICAL, false));
         recyclerView.setAdapter(new BaseAdapter<ChatRoomHolder<V2TIMConversation>>() {
+            @NonNull
             @Override
-            protected BaseViewHolder<ChatRoomHolder<V2TIMConversation>> getViewHolder(ViewGroup parent) {
+            public BaseViewHolder<ChatRoomHolder<V2TIMConversation>> onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
                 return new ChatRoomHolder<>(parent);
             }
         });

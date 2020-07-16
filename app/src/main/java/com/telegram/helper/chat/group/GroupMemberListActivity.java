@@ -17,6 +17,7 @@ import com.scwang.smartrefresh.layout.listener.OnRefreshListener;
 import com.telegram.helper.R;
 import com.telegram.helper.base.BaseActivity;
 import com.telegram.helper.base.BaseAdapter;
+import com.telegram.helper.chat.ChatActivity;
 import com.tencent.imsdk.ext.group.TIMGroupBaseInfo;
 import com.tencent.imsdk.v2.V2TIMGroupMemberFullInfo;
 import com.tencent.imsdk.v2.V2TIMGroupMemberInfoResult;
@@ -26,6 +27,7 @@ import com.tencent.imsdk.v2.V2TIMValueCallback;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -63,8 +65,9 @@ public class GroupMemberListActivity extends BaseActivity {
         super.initView();
         recyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false));
         recyclerView.setAdapter(new BaseAdapter<V2TIMGroupMemberFullInfo>() {
+            @NonNull
             @Override
-            protected BaseViewHolder<V2TIMGroupMemberFullInfo> getViewHolder(ViewGroup parent) {
+            public BaseViewHolder<V2TIMGroupMemberFullInfo> onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
                 return new GroupMemberHolder(parent);
             }
         });
@@ -113,6 +116,7 @@ public class GroupMemberListActivity extends BaseActivity {
     public static class GroupMemberHolder extends BaseAdapter.BaseViewHolder<V2TIMGroupMemberFullInfo> {
         @BindView(R.id.username)
         TextView username;
+        private V2TIMGroupMemberFullInfo mUserInfo;
 
         public GroupMemberHolder(ViewGroup parent) {
             super(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_group_member, null));
@@ -125,18 +129,20 @@ public class GroupMemberListActivity extends BaseActivity {
 
         @Override
         public void onValue(V2TIMGroupMemberFullInfo v2TIMGroupMemberFullInfo, int position) {
-            username.setText((v2TIMGroupMemberFullInfo.getRole() == V2TIM_GROUP_MEMBER_ROLE_OWNER ? "群主" : "群成员")
-                    + ": " + v2TIMGroupMemberFullInfo.getUserID() + ", 进群时间" + getTime(v2TIMGroupMemberFullInfo.getJoinTime()));
+            mUserInfo = v2TIMGroupMemberFullInfo;
+            username.setText(String.format("%s:%s, %s:%s", (v2TIMGroupMemberFullInfo.getRole() == V2TIM_GROUP_MEMBER_ROLE_OWNER ? "群主" : "群成员")
+                    , v2TIMGroupMemberFullInfo.getUserID(), "进群时间", getTime(v2TIMGroupMemberFullInfo.getJoinTime())));
         }
 
         private String getTime(long joinTime) {
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
             Date date = new Date(joinTime * 1000);
             return simpleDateFormat.format(date);
         }
 
         @OnClick(R.id.username)
         public void onViewClicked() {
+            ChatActivity.start(itemView.getContext(), mUserInfo.getUserID(), null);
         }
     }
 }

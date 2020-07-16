@@ -19,6 +19,15 @@ public abstract class BaseActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         initView();
         BaseApplication.getInstance().addTopActivity(this);
+        View leftBack = findViewById(R.id.iv_back);
+        if (leftBack != null) {
+            leftBack.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    onBackPressed();
+                }
+            });
+        }
     }
 
     protected void initView() {

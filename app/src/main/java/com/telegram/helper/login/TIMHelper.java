@@ -7,9 +7,14 @@ import com.blankj.utilcode.util.ToastUtils;
 import com.telegram.helper.event.ConversationChangeEvent;
 import com.telegram.helper.event.GroupChangeEvent;
 import com.tencent.imsdk.TIMCallBack;
+import com.tencent.imsdk.TIMConversation;
+import com.tencent.imsdk.TIMConversationType;
 import com.tencent.imsdk.TIMGroupManager;
 import com.tencent.imsdk.TIMManager;
+import com.tencent.imsdk.TIMMessage;
+import com.tencent.imsdk.TIMTextElem;
 import com.tencent.imsdk.TIMValueCallBack;
+import com.tencent.imsdk.conversation.ConversationManager;
 import com.tencent.imsdk.ext.group.TIMGroupBaseInfo;
 import com.tencent.imsdk.v2.V2TIMCallback;
 import com.tencent.imsdk.v2.V2TIMConversation;
@@ -223,6 +228,7 @@ public class TIMHelper {
             public void onError(int i, String s) {
                 addGroup(new ArrayList<>());
             }
+
             @Override
             public void onSuccess(List<TIMGroupBaseInfo> timGroupBaseInfos) {
                 addGroup(timGroupBaseInfos);
@@ -257,10 +263,39 @@ public class TIMHelper {
             public void onError(int i, String s) {
                 LogUtils.i("zune：", "进群失败：code = " + i + ", msg = " + s);
             }
+
             @Override
             public void onSuccess() {
                 ToastUtils.showShort("进入群组成功");
             }
         });
+    }
+
+    public void sendMsg(TIMConversationType type, String toUserId, String content, LoginHelper.CallBack callBack) {
+        TIMConversation timConversation = ConversationManager.getInstance().getConversation(type, toUserId);
+        timConversation.sendMessage(from(content), new TIMValueCallBack<TIMMessage>() {
+            @Override
+            public void onError(int code, String desc) {
+                LogUtils.i("zune：", "code = " + code + ", desc  = " + desc);
+                if (callBack != null) {
+                    callBack.onCallBack(false);
+                }
+            }
+
+            @Override
+            public void onSuccess(TIMMessage msg) {
+                if (callBack != null) {
+                    callBack.onCallBack(true);
+                }
+            }
+        });
+    }
+
+    public static TIMMessage from(String msg) {
+        TIMMessage message = new TIMMessage();
+        TIMTextElem elem = new TIMTextElem();
+        elem.setText(msg);
+        message.addElement(elem);
+        return message;
     }
 }

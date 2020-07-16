@@ -17,14 +17,6 @@ public abstract class BaseAdapter<T> extends RecyclerView.Adapter<BaseAdapter.Ba
         return mDatas;
     }
 
-    @NonNull
-    @Override
-    public BaseViewHolder<T> onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return getViewHolder(parent);
-    }
-
-    protected abstract BaseViewHolder<T> getViewHolder(ViewGroup parent);
-
     @Override
     public void onBindViewHolder(@NonNull BaseViewHolder<T> holder, int position) {
         holder.onValue(mDatas.get(position), position);

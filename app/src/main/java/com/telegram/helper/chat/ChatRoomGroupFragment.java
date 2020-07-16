@@ -42,8 +42,9 @@ public class ChatRoomGroupFragment extends BaseFragment {
     protected void initView(View view) {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), RecyclerView.VERTICAL, false));
         recyclerView.setAdapter(new BaseAdapter<TIMGroupBaseInfo>() {
+            @NonNull
             @Override
-            protected BaseViewHolder<TIMGroupBaseInfo> getViewHolder(ViewGroup parent) {
+            public BaseViewHolder<TIMGroupBaseInfo> onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
                 return new ChatRoomHolder(parent);
             }
         });
