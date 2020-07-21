@@ -38,6 +38,7 @@ import com.telegram.helper.bean.HrefData;
 import com.telegram.helper.util.GlideUtils;
 import com.telegram.helper.util.GsonGetter;
 import com.telegram.helper.util.MemoryCache;
+import com.telegram.helper.util.SimpleObserver;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -46,6 +47,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
 import pl.droidsonroids.gif.GifImageView;
 
 public class PictureActivity extends AppCompatActivity {
@@ -166,27 +171,38 @@ public class PictureActivity extends AppCompatActivity {
             recyclerView.scrollToPosition(0);
         }
         mDatas.clear();
-        for (HrefData hrefData : paths) {
-            if (TextUtils.isEmpty(hrefData.href)) {
-                File dir = new File(hrefData.text);
-                addAllFile(dir);
-                if (!mDatas.isEmpty()) {
-                    Collections.sort(mDatas, new Comparator<HrefData>() {
-                        @Override
-                        public int compare(HrefData o1, HrefData o2) {
-                            return getPosition(o1.text) - getPosition(o2.text);
+        Observable.just(1).map(new Function<Integer, Integer>() {
+            @Override
+            public Integer apply(Integer integer) throws Exception {
+                for (HrefData hrefData : paths) {
+                    if (TextUtils.isEmpty(hrefData.href)) {
+                        File dir = new File(hrefData.text);
+                        addAllFile(dir);
+                        if (!mDatas.isEmpty()) {
+                            Collections.sort(mDatas, new Comparator<HrefData>() {
+                                @Override
+                                public int compare(HrefData o1, HrefData o2) {
+                                    return getPosition(o1.text) - getPosition(o2.text);
+                                }
+                            });
                         }
-                    });
+                    }
                 }
-                if (recyclerView.getAdapter() != null) {
-                    recyclerView.getAdapter().notifyDataSetChanged();
-                }
-                if (refreshLayout != null) {
-                    refreshLayout.finishLoadMore();
-                    refreshLayout.finishRefresh();
-                }
+                return 1;
             }
-        }
+        }).subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new SimpleObserver<Integer, Integer>(1, false) {
+                    @Override
+                    public void onNext(Integer integer, Integer integer2) {
+                        if (recyclerView.getAdapter() != null) {
+                            recyclerView.getAdapter().notifyDataSetChanged();
+                        }
+                        if (refreshLayout != null) {
+                            refreshLayout.finishLoadMore();
+                            refreshLayout.finishRefresh();
+                        }
+                    }
+                });
     }
 
     private static Pattern pattern = Pattern.compile("-?[0-9]+\\.?[0-9]*");
