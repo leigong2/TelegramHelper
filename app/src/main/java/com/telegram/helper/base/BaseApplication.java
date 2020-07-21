@@ -3,6 +3,7 @@ package com.telegram.helper.base;
 import android.app.Activity;
 import android.app.Application;
 import android.graphics.Color;
+import android.os.Handler;
 
 import com.blankj.utilcode.util.ToastUtils;
 import com.blankj.utilcode.util.Utils;
@@ -14,6 +15,7 @@ import java.util.Stack;
 public class BaseApplication extends Application {
     private static BaseApplication sApplication;
     private static Stack<Activity> mActivityStack = new Stack<>();
+    private static Handler sHandler;
 
     @Override
     public void onCreate() {
@@ -23,6 +25,11 @@ public class BaseApplication extends Application {
         Utils.init(this);
         ToastUtils.setMsgColor(Color.WHITE);
         ToastUtils.setBgResource(R.drawable.bg_toast);
+        sHandler = new Handler();
+    }
+
+    public Handler getHandler() {
+        return sHandler;
     }
 
     public static BaseApplication getInstance() {

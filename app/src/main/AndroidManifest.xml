@@ -60,6 +60,11 @@
         <activity android:name=".chat.ChatRoomActivity"/>
         <activity android:name=".chat.ChatActivity"/>
         <activity android:name=".chat.group.GroupMemberListActivity"/>
+        <activity android:name=".helper.PictureGallayActivity"/>
+        <activity android:name=".helper.WatchVideoActivity"/>
+        <activity android:name=".helper.VideoPlayerActivity"/>
+        <activity android:name=".helper.PictureActivity"/>
+        <activity android:name=".helper.ImageViewActivity"/>
     </application>
 
 </manifest>
