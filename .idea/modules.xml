@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/TelegramHelper.iml" filepath="$PROJECT_DIR$/.idea/modules/TelegramHelper.iml" group="TelegramHelper" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/TelegramHelper-app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/TelegramHelper-app.iml" group="TelegramHelper/app" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/app.iml" group="TelegramHelper/app" />
     </modules>
   </component>

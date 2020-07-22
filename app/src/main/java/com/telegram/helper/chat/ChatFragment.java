@@ -102,6 +102,7 @@ public class ChatFragment extends BaseFragment {
     }
 
     public void loadData() {
+        mAdapter.getDatas().clear();
         if (mTIMConversation == null) {
             mTIMConversation = ConversationManager.getInstance().getConversation(TIMConversationType.C2C, userId);
         }
