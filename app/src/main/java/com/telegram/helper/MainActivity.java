@@ -2,18 +2,21 @@ package com.telegram.helper;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Environment;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -26,8 +29,8 @@ import com.google.gson.reflect.TypeToken;
 import com.telegram.helper.base.BaseActivity;
 import com.telegram.helper.bean.HrefData;
 import com.telegram.helper.chat.ChatRoomActivity;
+import com.telegram.helper.helper.ListenMusicActivity;
 import com.telegram.helper.helper.PictureActivity;
-import com.telegram.helper.helper.PictureGallayActivity;
 import com.telegram.helper.helper.WatchVideoActivity;
 import com.telegram.helper.login.LoginHelper;
 import com.telegram.helper.util.ClearUtils;
@@ -37,6 +40,7 @@ import com.telegram.helper.util.GsonGetter;
 import com.telegram.helper.views.ClearHolder;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,13 +53,13 @@ import static java.io.File.separator;
 
 public class MainActivity extends BaseActivity {
 
-    private String baseDir;
     private String imageDir;
     private String videoDir;
     private String documentDir;
     private String audioDir;
     private List<String> mMainTags = new ArrayList<>();
     private ClearHolder clearHolder;
+    private AlertDialog warnDialog;
 
     public static void start(Context context) {
         Intent intent = new Intent(context, MainActivity.class);
@@ -66,7 +70,6 @@ public class MainActivity extends BaseActivity {
     protected void initView() {
         super.initView();
         setContentView(R.layout.activity_main);
-        baseDir = Environment.getExternalStorageDirectory().getAbsolutePath() + separator + "Telegram";
         imageDir = Environment.getExternalStorageDirectory().getAbsolutePath() + separator + "Telegram" + separator + "Telegram Images";
         videoDir = Environment.getExternalStorageDirectory().getAbsolutePath() + separator + "Telegram" + separator + "Telegram Video";
         documentDir = Environment.getExternalStorageDirectory().getAbsolutePath() + separator + "Telegram" + separator + "Telegram Documents";
@@ -207,7 +210,7 @@ public class MainActivity extends BaseActivity {
                 WatchVideoActivity.start(MainActivity.this, videoDir);
                 break;
             case "歌曲": //歌曲");
-//                ListenMusicActivity.start(MainActivity.this, musicFile);
+                ListenMusicActivity.start(MainActivity.this, audioDir);
                 break;
             case "图片": //图片");
                 lookPic();
@@ -261,30 +264,65 @@ public class MainActivity extends BaseActivity {
                 return;
             }
         }
-        if (clearHolder == null) {
-            clearHolder = new ClearHolder(findViewById(R.id.clear_root));
+        showWarnDialog();
+    }
+
+    private void showWarnDialog() {
+        warnDialog = new AlertDialog.Builder(this)
+                .setTitle("删除后，仅保留手机文件夹{Android、Bing、DCIM、Documents、Download、Picture、Pictures、Music、Pictures、QQBrowser、Telegram、tencent、Video}\n是否继续？")
+                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        warnDialog.dismiss();
+                    }
+                })
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        warnDialog.dismiss();
+                        if (clearHolder == null) {
+                            clearHolder = new ClearHolder(findViewById(R.id.clear_root));
+                        }
+                        clearHolder.startLoad();
+                        ClearUtils.getInstance().delete(Environment.getExternalStorageDirectory().getPath(), new Observer<List<String>>() {
+                            @Override
+                            public void onSubscribe(Disposable d) {
+                            }
+
+                            @Override
+                            public void onNext(List<String> integer) {
+                                ToastUtils.showShort("删除完成");
+                                clearHolder.stopLoad();
+                            }
+
+                            @Override
+                            public void onError(Throwable e) {
+                                ToastUtils.showShort("刪除失败");
+                            }
+
+                            @Override
+                            public void onComplete() {
+                            }
+                        });
+                    }
+                })
+                .create();
+        try {
+            Class<?> mAlert = warnDialog.getClass();
+            Field field = mAlert.getDeclaredField("mAlert");
+            field.setAccessible(true);
+            Field mTitleView = field.get(warnDialog).getClass().getDeclaredField("mTitleView");
+            mTitleView.setAccessible(true);
+            Object AlertController = field.get(warnDialog);
+            mTitleView.set(AlertController, new TextView(this));
+            warnDialog.show();
+            Object obj = mTitleView.get(AlertController);
+            TextView textView = (TextView) obj;
+            textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+            textView.setSingleLine(false);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        clearHolder.startLoad();
-        ClearUtils.getInstance().delete(Environment.getExternalStorageDirectory().getPath(), new Observer<List<String>>() {
-            @Override
-            public void onSubscribe(Disposable d) {
-            }
-
-            @Override
-            public void onNext(List<String> integer) {
-                ToastUtils.showShort("删除完成");
-                clearHolder.stopLoad(integer);
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                ToastUtils.showShort("刪除失败");
-            }
-
-            @Override
-            public void onComplete() {
-            }
-        });
     }
 
     @Override

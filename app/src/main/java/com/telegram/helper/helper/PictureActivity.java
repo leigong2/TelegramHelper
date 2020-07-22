@@ -2,8 +2,6 @@ package com.telegram.helper.helper;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -58,6 +56,8 @@ public class PictureActivity extends AppCompatActivity {
     private SmartRefreshLayout refreshLayout;
     private List<HrefData> mDatas = new ArrayList<>();
     private List<HrefData> paths;
+    private ImageView anim;
+    private View animLay;
 
     public static void start(Context context, List<HrefData> path) {
         if (Build.VERSION.SDK_INT >= 23) {
@@ -82,6 +82,14 @@ public class PictureActivity extends AppCompatActivity {
         setContentView(R.layout.activity_watch_video);
         recyclerView = findViewById(R.id.recycler_view);
         refreshLayout = findViewById(R.id.refresh_layout);
+        anim = findViewById(R.id.anim);
+        animLay = findViewById(R.id.anim_lay);
+        animLay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                animLay.setVisibility(View.GONE);
+            }
+        });
 
         recyclerView.setLayoutManager(new GridLayoutManager(this, 5, RecyclerView.VERTICAL, false));
         recyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
@@ -102,24 +110,18 @@ public class PictureActivity extends AppCompatActivity {
                 viewHolder.itemView.setOnClickListener(new WatchVideoActivity.OnClickListener(i) {
                     @Override
                     public void onClick(View view, int position) {
-                        if (mDatas == null || mDatas.isEmpty()) {
-                            ToastUtils.showShort("图片为空文件夹");
-                            return;
-                        }
-                        PictureGallayActivity.start(PictureActivity.this, paths, (Integer) view.getTag());
+                        animLay.setVisibility(View.VISIBLE);
+                        GlideUtils.getInstance().loadUrl(mDatas.get((Integer) view.getTag()).text, anim, true, true);
                     }
                 });
                 viewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View view) {
-                        int position = (int) view.getTag();
-                        HrefData url = mDatas.get(position);
-                        ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                        if (cm != null) {
-                            ClipData mClipData = ClipData.newPlainText("Label", url.text);
-                            cm.setPrimaryClip(mClipData);
-                            ToastUtils.showShort("链接已复制");
+                        if (paths == null || paths.isEmpty()) {
+                            ToastUtils.showShort("图片为空文件夹");
+                            return false;
                         }
+                        PictureGallayActivity.start(PictureActivity.this, paths, (Integer) view.getTag());
                         return false;
                     }
                 });
@@ -206,6 +208,7 @@ public class PictureActivity extends AppCompatActivity {
     }
 
     private static Pattern pattern = Pattern.compile("-?[0-9]+\\.?[0-9]*");
+
     private int getPosition(String o1) {
         String[] split = o1.split("\\.");
         for (int i = o1.length() - (split[split.length - 1].length() + 2); i >= 0; i--) {

@@ -1,35 +1,31 @@
 package com.telegram.helper.helper;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.media.MediaPlayer;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.WindowManager;
-import android.widget.MediaController;
-import android.widget.VideoView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager2.adapter.FragmentStateAdapter;
+import androidx.viewpager2.widget.ViewPager2;
 
-import com.blankj.utilcode.util.ToastUtils;
 import com.telegram.helper.R;
+import com.telegram.helper.util.MemoryCache;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class VideoPlayerActivity extends AppCompatActivity {
+    private List<WatchVideoActivity.MediaData> mediaData;
+    private ViewPager2 recyclerView;
+    private int position;
 
-    private VideoView videoView;
-    private static final int PLAY_RETURN = 2 * 1000; // 2 seconds
-    private static final String KEY_PLAY_POSITON = "paly_position";
-    private static final String TOAST_ERROR_PLAY = "Paly error, please check url exist!";
-    private static final String DIALOG_TITILE = "加载中，请稍后…";
-    private ProgressDialog progressDialog;
-    private String url;
-
-    public static void start(Context context, String url) {
+    public static void start(Context context, List<WatchVideoActivity.MediaData> mediaData, int position) {
         Intent intent = new Intent(context, VideoPlayerActivity.class);
-        intent.putExtra("url", url);
+        MemoryCache.getInstance().put("mediaData", mediaData);
+        MemoryCache.getInstance().put("position", position);
         context.startActivity(intent);
     }
 
@@ -40,72 +36,33 @@ public class VideoPlayerActivity extends AppCompatActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         //透明导航栏
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
-        setContentView(R.layout.activity_video_view);
-        videoView = findViewById(R.id.video_view);
-        url = getIntent().getStringExtra("url");
-        if (url == null && savedInstanceState != null) {
-            url = savedInstanceState.getString("url");
+        setContentView(R.layout.layout_video_list);
+        recyclerView = findViewById(R.id.recycler_view);
+        recyclerView.setOrientation(ViewPager2.ORIENTATION_VERTICAL);
+        mediaData = MemoryCache.getInstance().remove("mediaData");
+        position = MemoryCache.getInstance().remove("position");
+        if (mediaData == null) {
+            mediaData = new ArrayList<>();
         }
-        if (url == null) {
-            finish();
-            return;
+        if (position >= mediaData.size()) {
+            position = 0;
         }
-        videoView.setVideoURI(Uri.parse(url));
-        videoView.requestFocus();
-        videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+        recyclerView.setAdapter(new FragmentStateAdapter(this) {
+
+            @NonNull
             @Override
-            public void onPrepared(MediaPlayer mediaPlayer) {
-                progressDialog.cancel();
-                videoView.start();
+            public VideoPlayFragment createFragment(int position) {
+                mCurrentFragment = VideoPlayFragment.getInstance(mediaData.get(position));
+                return mCurrentFragment;
+            }
+
+            @Override
+            public int getItemCount() {
+                return mediaData.size();
             }
         });
-        videoView.setOnErrorListener(new MediaPlayer.OnErrorListener() {
-            @Override
-            public boolean onError(MediaPlayer mp, int what, int extra) {
-                ToastUtils.showShort(TOAST_ERROR_PLAY);
-                progressDialog.cancel();
-                finish();
-                return false;
-            }
-        });
-        MediaController controller = new MediaController(this);
-        controller.setAnchorView(videoView);
-        controller.setKeepScreenOn(true);
-        videoView.setMediaController(controller);
-        videoView.start();
-        initDialog();
+        recyclerView.setCurrentItem(position, false);
     }
 
-    private void initDialog() {
-        progressDialog = new ProgressDialog(this);
-        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        progressDialog.setMessage(DIALOG_TITILE);
-        progressDialog.setCancelable(true);
-        progressDialog.show();
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (progressDialog.isShowing()) {
-            progressDialog.dismiss();
-        }
-        super.onBackPressed();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        int palyPosition = videoView.getCurrentPosition();
-        if (palyPosition > PLAY_RETURN) {
-            palyPosition -= PLAY_RETURN;
-        }
-        getIntent().putExtra(KEY_PLAY_POSITON, palyPosition);
-        getIntent().putExtra("url", url);
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        videoView.seekTo(getIntent().getIntExtra(KEY_PLAY_POSITON, 0));
-    }
+    private VideoPlayFragment mCurrentFragment;
 }

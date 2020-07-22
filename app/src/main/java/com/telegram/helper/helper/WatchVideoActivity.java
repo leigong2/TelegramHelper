@@ -2,7 +2,6 @@ package com.telegram.helper.helper;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -131,7 +130,7 @@ public class WatchVideoActivity extends AppCompatActivity {
                 viewHolder.itemView.setOnClickListener(new OnClickListener(i) {
                     @Override
                     public void onClick(View view, int position) {
-                        VideoPlayerActivity.start(WatchVideoActivity.this, mDatas.get(position).url);
+                        VideoPlayerActivity.start(WatchVideoActivity.this, mDatas, position);
                     }
                 });
                 viewHolder.itemView.setTag(i);
@@ -156,6 +155,7 @@ public class WatchVideoActivity extends AppCompatActivity {
                 return mDatas.size();
             }
         });
+        recyclerView.setItemViewCacheSize(20);
         mDatas = new ArrayList<>();
         path = getIntent().getStringExtra("path");
         loadData();
@@ -209,10 +209,10 @@ public class WatchVideoActivity extends AppCompatActivity {
             if (file.getPath().endsWith(".mp4")
                     || file.getPath().endsWith(".mov")
                     || file.getPath().endsWith(".MP4")
-                    || file.getPath().endsWith(".MOV") ) {
+                    || file.getPath().endsWith(".MOV")) {
                 DecimalFormat decimalFormat = new DecimalFormat("0.00");//构造方法的字符格式这里如果小数不足2位,会以0补足.
                 String string = decimalFormat.format(file.length() / 1024f / 1024f);//返回字符串
-                MediaData data = new MediaData(string + "M", file.getPath(), file.getPath(),  new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date(file.lastModified())));
+                MediaData data = new MediaData(string + "M", file.getPath(), file.getPath(), new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date(file.lastModified())));
                 datas.add(data);
             }
         }

@@ -65,6 +65,8 @@
         <activity android:name=".helper.VideoPlayerActivity"/>
         <activity android:name=".helper.PictureActivity"/>
         <activity android:name=".helper.ImageViewActivity"/>
+        <activity android:name=".helper.ListenMusicActivity"/>
+        <service android:name=".helper.MusicPlayService"/>
     </application>
 
 </manifest>

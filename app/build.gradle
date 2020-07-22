@@ -15,7 +15,20 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
-
+    signingConfigs {
+        release {
+            keyAlias 'key0'
+            keyPassword '111111'
+            storeFile file('android.jks')
+            storePassword '111111'
+        }
+        debug {
+            keyAlias 'key0'
+            keyPassword '111111'
+            storeFile file('android.jks')
+            storePassword '111111'
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
@@ -56,6 +69,7 @@ dependencies {
     implementation 'org.greenrobot:eventbus:3.1.1'
     //butterknife
     implementation 'com.jakewharton:butterknife:10.2.1'
+    implementation 'org.jetbrains:annotations:15.0'
     kapt 'com.jakewharton:butterknife-compiler:10.2.1'
     annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.1'
     implementation 'com.tencent.imsdk:imsdk:4.8.50'

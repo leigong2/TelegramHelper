@@ -157,6 +157,7 @@ public class ClearUtils {
                 noDelete.add("QQBrowser");
                 noDelete.add("Telegram");
                 noDelete.add("tencent");
+                noDelete.add("Video");
                 for (int i = 0; i < files.length; i++) {
                     File tempFile = files[i];
                     String tempFileName = tempFile.getName();
