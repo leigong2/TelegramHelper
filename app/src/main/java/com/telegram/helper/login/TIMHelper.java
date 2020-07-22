@@ -1,6 +1,7 @@
 package com.telegram.helper.login;
 
 import android.content.Context;
+import android.text.SpannableStringBuilder;
 
 import com.blankj.utilcode.util.LogUtils;
 import com.blankj.utilcode.util.ToastUtils;
@@ -9,25 +10,39 @@ import com.telegram.helper.event.GroupChangeEvent;
 import com.tencent.imsdk.TIMCallBack;
 import com.tencent.imsdk.TIMConversation;
 import com.tencent.imsdk.TIMConversationType;
+import com.tencent.imsdk.TIMElem;
+import com.tencent.imsdk.TIMFaceElem;
 import com.tencent.imsdk.TIMGroupManager;
 import com.tencent.imsdk.TIMManager;
 import com.tencent.imsdk.TIMMessage;
 import com.tencent.imsdk.TIMTextElem;
 import com.tencent.imsdk.TIMValueCallBack;
-import com.tencent.imsdk.conversation.ConversationManager;
 import com.tencent.imsdk.ext.group.TIMGroupBaseInfo;
 import com.tencent.imsdk.v2.V2TIMCallback;
 import com.tencent.imsdk.v2.V2TIMConversation;
 import com.tencent.imsdk.v2.V2TIMConversationListener;
 import com.tencent.imsdk.v2.V2TIMConversationResult;
+import com.tencent.imsdk.v2.V2TIMFaceElem;
+import com.tencent.imsdk.v2.V2TIMFriendAddApplication;
+import com.tencent.imsdk.v2.V2TIMFriendCheckResult;
+import com.tencent.imsdk.v2.V2TIMFriendInfo;
+import com.tencent.imsdk.v2.V2TIMFriendOperationResult;
+import com.tencent.imsdk.v2.V2TIMFriendshipManager;
+import com.tencent.imsdk.v2.V2TIMGroupMemberInfo;
 import com.tencent.imsdk.v2.V2TIMManager;
+import com.tencent.imsdk.v2.V2TIMManagerImpl;
+import com.tencent.imsdk.v2.V2TIMMessage;
 import com.tencent.imsdk.v2.V2TIMSDKConfig;
 import com.tencent.imsdk.v2.V2TIMSDKListener;
+import com.tencent.imsdk.v2.V2TIMSimpleMsgListener;
+import com.tencent.imsdk.v2.V2TIMTextElem;
+import com.tencent.imsdk.v2.V2TIMUserInfo;
 import com.tencent.imsdk.v2.V2TIMValueCallback;
 
 import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.tencent.imsdk.v2.V2TIMSDKConfig.V2TIM_LOG_NONE;
@@ -39,6 +54,7 @@ public class TIMHelper {
     private V2TIMSDKConfig sdkConfig;
     private boolean enable;
     private LoginHelper.CallBack callBack;
+    public List<V2TIMFriendInfo> friendList = new ArrayList<>();
     public List<V2TIMConversation> conversations = new ArrayList<>();  //我的会话列表
     public List<TIMGroupBaseInfo> mGroupLists = new ArrayList<>();  //我的群组列表
 
@@ -110,6 +126,46 @@ public class TIMHelper {
                 addConversations(conversationList);
             }
         });
+        /*zune: 消息监听**/
+        V2TIMManagerImpl.getInstance().addSimpleMsgListener(new V2TIMSimpleMsgListener() {
+            @Override
+            public void onRecvC2CTextMessage(String msgID, V2TIMUserInfo sender, String text) {
+                super.onRecvC2CTextMessage(msgID, sender, text);
+                for (OnReceiveMsgListener msgListener : msgListeners) {
+                    if (msgListener != null) {
+                        msgListener.onRecvC2CTextMessage(msgID, sender, text);
+                    }
+                }
+            }
+
+            @Override
+            public void onRecvGroupTextMessage(String msgID, String groupID, V2TIMGroupMemberInfo sender, String text) {
+                super.onRecvGroupTextMessage(msgID, groupID, sender, text);
+                for (OnReceiveMsgListener msgListener : msgListeners) {
+                    if (msgListener != null) {
+                        msgListener.onRecvGroupTextMessage(msgID, groupID, sender, text);
+                    }
+                }
+            }
+        });
+    }
+
+    public interface OnReceiveMsgListener {
+        void onRecvC2CTextMessage(String msgID, V2TIMUserInfo sender, String text);
+
+        void onRecvGroupTextMessage(String msgID, String groupID, V2TIMGroupMemberInfo sender, String text);
+    }
+
+    private List<OnReceiveMsgListener> msgListeners = new ArrayList<>();
+
+    public void register(OnReceiveMsgListener listener) {
+        msgListeners.add(listener);
+    }
+
+    public void unRegister(OnReceiveMsgListener listener) {
+        if (msgListeners.contains(listener)) {
+            msgListeners.remove(listener);
+        }
     }
 
     private void addConversations(List<V2TIMConversation> conversationList) {
@@ -222,6 +278,47 @@ public class TIMHelper {
                 });
     }
 
+    public void getFriendList() {
+        V2TIMFriendshipManager manager = V2TIMManagerImpl.getFriendshipManager();
+        manager.getFriendList(new V2TIMValueCallback<List<V2TIMFriendInfo>>() {
+            @Override
+            public void onError(int i, String s) {
+            }
+
+            @Override
+            public void onSuccess(List<V2TIMFriendInfo> v2TIMFriendInfos) {
+                addFriends(v2TIMFriendInfos);
+            }
+        });
+    }
+
+    private void addFriends(List<V2TIMFriendInfo> friendInfos) {
+        if (friendInfos == null || friendInfos.isEmpty()) {
+            return;
+        }
+        List<String> userIds = new ArrayList<>();
+        for (int i = 0; i < friendList.size(); i++) {
+            V2TIMFriendInfo friendInfo = friendList.get(i);
+            if (userIds.contains(friendInfo.getUserID())) {
+                continue;
+            }
+            userIds.add(friendInfo.getUserID());
+        }
+        boolean changed = false;
+        for (int i = 0; i < friendInfos.size(); i++) {
+            V2TIMFriendInfo friendInfo = friendInfos.get(i);
+            if (userIds.contains(friendInfo.getUserID())) {
+                continue;
+            }
+            changed = true;
+            friendList.add(friendInfo);
+        }
+        if (changed) {
+            ConversationChangeEvent event = new ConversationChangeEvent();
+            EventBus.getDefault().post(event);
+        }
+    }
+
     public void getGroupList() {
         TIMGroupManager.getInstance().getGroupList(new TIMValueCallBack<List<TIMGroupBaseInfo>>() {
             @Override
@@ -272,8 +369,7 @@ public class TIMHelper {
     }
 
     public void sendMsg(TIMConversationType type, String toUserId, String content, LoginHelper.CallBack callBack) {
-        TIMConversation timConversation = ConversationManager.getInstance().getConversation(type, toUserId);
-        timConversation.sendMessage(from(content), new TIMValueCallBack<TIMMessage>() {
+        V2TIMManagerImpl.getInstance().sendC2CTextMessage(content, toUserId, new V2TIMValueCallback<V2TIMMessage>() {
             @Override
             public void onError(int code, String desc) {
                 LogUtils.i("zune：", "code = " + code + ", desc  = " + desc);
@@ -283,7 +379,7 @@ public class TIMHelper {
             }
 
             @Override
-            public void onSuccess(TIMMessage msg) {
+            public void onSuccess(V2TIMMessage v2TIMMessage) {
                 if (callBack != null) {
                     callBack.onCallBack(true);
                 }
@@ -295,7 +391,78 @@ public class TIMHelper {
         TIMMessage message = new TIMMessage();
         TIMTextElem elem = new TIMTextElem();
         elem.setText(msg);
+        message.setCustomStr(LoginHelper.getInstance().getUserId());
         message.addElement(elem);
         return message;
+    }
+
+    public static TIMMessage from(String sender, String msg) {
+        TIMMessage message = new TIMMessage();
+        TIMTextElem elem = new TIMTextElem();
+        elem.setText(msg);
+        message.addElement(elem);
+        message.setCustomStr(sender);
+        return message;
+    }
+
+    public static CharSequence to(TIMMessage timMessage) {
+        SpannableStringBuilder stringBuilder = new SpannableStringBuilder();
+        for (int i = 0; i < timMessage.getElementCount(); ++i) {
+            TIMElem element = timMessage.getElement(i);
+            switch (element.getType()) {
+                case Face:
+                    TIMFaceElem faceElem = (TIMFaceElem) element;
+                    stringBuilder.append(Arrays.toString(faceElem.getData()));
+                    break;
+                case Text:
+                    TIMTextElem textElem = (TIMTextElem) element;
+                    stringBuilder.append(textElem.getText());
+                    break;
+            }
+        }
+        return stringBuilder;
+    }
+
+    public static CharSequence to(V2TIMMessage timMessage) {
+        SpannableStringBuilder stringBuilder = new SpannableStringBuilder();
+        switch (timMessage.getElemType()) {
+            case 8:
+                V2TIMFaceElem faceElem = timMessage.getFaceElem();
+                stringBuilder.append(Arrays.toString(faceElem.getData()));
+                break;
+            case 1:
+                V2TIMTextElem textElem = timMessage.getTextElem();
+                stringBuilder.append(textElem.getText());
+                break;
+        }
+        return stringBuilder;
+    }
+
+    public void isFriend(String userID, V2TIMValueCallback<V2TIMFriendCheckResult> callback) {
+        V2TIMManager.getFriendshipManager().checkFriend(userID, V2TIMFriendInfo.V2TIM_FRIEND_TYPE_SINGLE, callback);
+    }
+
+    public void applyFriend(String userId, V2TIMValueCallback<V2TIMFriendOperationResult> callback) {
+        V2TIMFriendAddApplication application = new V2TIMFriendAddApplication(userId);
+        V2TIMManager.getFriendshipManager().addFriend(application, callback);
+    }
+
+    public void sendGroupMsg(TIMConversationType group, String groupId, String content, LoginHelper.CallBack callBack) {
+        V2TIMManagerImpl.getInstance().sendGroupTextMessage(content, groupId, V2TIMMessage.V2TIM_PRIORITY_NORMAL, new V2TIMValueCallback<V2TIMMessage>() {
+            @Override
+            public void onError(int i, String s) {
+                LogUtils.i("zune：", "code = " + i + ", msg = " + s);
+                if (callBack != null) {
+                    callBack.onCallBack(false);
+                }
+            }
+
+            @Override
+            public void onSuccess(V2TIMMessage v2TIMMessage) {
+                if (callBack != null) {
+                    callBack.onCallBack(true);
+                }
+            }
+        });
     }
 }

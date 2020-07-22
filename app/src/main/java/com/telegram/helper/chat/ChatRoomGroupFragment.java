@@ -92,7 +92,7 @@ public class ChatRoomGroupFragment extends BaseFragment {
         private TIMGroupBaseInfo mCurData;
 
         public ChatRoomHolder(@NonNull ViewGroup parent) {
-            super(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_chat_room, null));
+            super(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_chat_room, parent, false));
             ButterKnife.bind(this, itemView);
         }
 
@@ -109,7 +109,8 @@ public class ChatRoomGroupFragment extends BaseFragment {
         @OnClick(R.id.username)
         public void onViewClicked() {
             if (mCurData != null) {
-                GroupMemberListActivity.start(itemView.getContext(), mCurData);
+                String groupId = mCurData.getGroupId();
+                ChatActivity.start(itemView.getContext(), "", groupId);
             }
         }
     }

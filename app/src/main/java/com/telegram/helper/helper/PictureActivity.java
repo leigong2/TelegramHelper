@@ -166,16 +166,17 @@ public class PictureActivity extends AppCompatActivity {
             }
         });
         refreshLayout.setEnableLoadMore(false);
+        refreshLayout.setEnableRefresh(false);
     }
 
     private void loadData() {
         if (recyclerView != null && mDatas.size() > 0) {
             recyclerView.scrollToPosition(0);
         }
-        mDatas.clear();
         Observable.just(1).map(new Function<Integer, Integer>() {
             @Override
             public Integer apply(Integer integer) throws Exception {
+                mDatas.clear();
                 for (HrefData hrefData : paths) {
                     if (TextUtils.isEmpty(hrefData.href)) {
                         File dir = new File(hrefData.text);
@@ -252,6 +253,5 @@ public class PictureActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         mHandler.removeCallbacks(null);
-        SPUtils.getInstance().put("PictureActivityData", GsonGetter.getInstance().getGson().toJson(mDatas));
     }
 }
